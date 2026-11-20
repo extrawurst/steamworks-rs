@@ -429,7 +429,9 @@ pub enum SteamError {
 impl From<sys::EResult> for SteamError {
     fn from(r: sys::EResult) -> Self {
         match r {
-            sys::EResult::k_EResultOK => panic!("EResult::k_EResultOK isn't an error"),
+            // Callbacks can carry OK (e.g. `SteamServersDisconnected` when Steam quits cleanly)
+            // or codes this enum lacks; panicking here aborts `run_callbacks`.
+            sys::EResult::k_EResultOK => SteamError::Generic,
             sys::EResult::k_EResultFail => SteamError::Generic,
             sys::EResult::k_EResultNoConnection => SteamError::NoConnection,
             sys::EResult::k_EResultInvalidPassword => SteamError::InvalidPassword,
@@ -580,7 +582,7 @@ impl From<sys::EResult> for SteamError {
             sys::EResult::k_EResultFamilySizeLimitExceeded => SteamError::FamilySizeLimitExceeded,
             sys::EResult::k_EResultOfflineAppCacheInvalid => SteamError::OfflineAppCacheInvalid,
             sys::EResult::k_EResultTryLater => SteamError::TryLater,
-            _ => unreachable!(),
+            _ => SteamError::Generic,
         }
     }
 }
